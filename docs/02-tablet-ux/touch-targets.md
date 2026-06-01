@@ -16,9 +16,10 @@ Kiosks are touched by strangers, sometimes standing, sometimes gloved. Be genero
 > [`../references.md`](../references.md).
 
 ## Enforce a minimum
+Use the shared touch tokens from [`../01-architecture/theme-design-tokens.md`](../01-architecture/theme-design-tokens.md):
 ```ts
 // theme/touch.ts
-export const TOUCH = { min: 48, comfortable: 56, primary: 64, gap: 8 };
+export const TOUCH = { min: 48, comfortable: 56, primary: 64, gap: 8 } as const;
 ```
 ```tsx
 <Pressable

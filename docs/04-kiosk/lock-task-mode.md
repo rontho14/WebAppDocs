@@ -3,6 +3,10 @@
 Prerequisite: app is **Device Owner** ([`device-owner.md`](device-owner.md)).
 This wires a native module to start/stop Lock Task and exposes a clean JS API.
 
+> Native snippets are in Java; **Kotlin works the same** (`@ReactMethod`,
+> `ReactContextBaseJavaModule`/`ReactPackage` exist in both). The TS wrapper is
+> identical regardless of native language.
+
 ## 1. Native module — `KioskLockTaskModule.java`
 ```java
 public class KioskLockTaskModule extends ReactContextBaseJavaModule {

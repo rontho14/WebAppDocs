@@ -32,12 +32,40 @@ them short, forgiving, and large.
 
 ## Validation
 Use a schema (Zod / Yup) + `react-hook-form`. Validate on blur/submit, not per keystroke.
-```ts
+```tsx
 const schema = z.object({
   name: z.string().min(2, 'Required'),
   email: z.string().email('Invalid email'),
 });
 type FormData = z.infer<typeof schema>;
+
+function CheckinForm({ onSubmit }: { onSubmit: (d: FormData) => Promise<void> }) {
+  const { control, handleSubmit, formState: { errors, isSubmitting } } =
+    useForm<FormData>({ resolver: zodResolver(schema), mode: 'onBlur' });
+
+  return (
+    <>
+      <Controller
+        control={control} name="email"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <TextInput
+            value={value} onChangeText={onChange} onBlur={onBlur}
+            keyboardType="email-address" autoCapitalize="none"
+            accessibilityLabel="Email" style={styles.input}
+          />
+        )}
+      />
+      {errors.email && <Text style={styles.error}>{errors.email.message}</Text>}
+
+      <Pressable
+        onPress={handleSubmit(onSubmit)}
+        disabled={isSubmitting}
+        style={[styles.button, isSubmitting && styles.buttonDisabled]}>
+        <Text>{isSubmitting ? 'Submitting…' : 'Check in'}</Text>
+      </Pressable>
+    </>
+  );
+}
 ```
 - Show errors inline, near the field, in plain language.
 - Disable submit while invalid or pending; show a spinner on submit.

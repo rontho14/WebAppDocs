@@ -37,6 +37,38 @@ export function RootNavigator() {
 }
 ```
 
+## Navigation rail sketch (tablet primary nav)
+A persistent vertical rail beside the content (replaces the bottom bar on large screens):
+```tsx
+const ITEMS = [
+  { key: 'Home', icon: 'home' },
+  { key: 'Visitors', icon: 'people' },
+] as const;
+
+function RailNavigator() {
+  const [active, setActive] = useState<string>('Home');
+  return (
+    <View style={{ flex: 1, flexDirection: 'row' }}>
+      <View style={{ width: 88, paddingVertical: spacing.md, alignItems: 'center' }}>
+        {ITEMS.map((it) => (
+          <Pressable
+            key={it.key}
+            onPress={() => setActive(it.key)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: active === it.key }}
+            style={{ minHeight: TOUCH.comfortable, alignItems: 'center', marginBottom: spacing.lg }}>
+            <Icon name={it.icon} color={active === it.key ? colors.primary[500] : colors.gray[500]} />
+            <Text>{it.key}</Text>
+          </Pressable>
+        ))}
+      </View>
+      <View style={{ flex: 1 }}>{/* active screen */}</View>
+    </View>
+  );
+}
+```
+Tokens (`spacing`, `colors`, `TOUCH`) come from [`../01-architecture/theme-design-tokens.md`](../01-architecture/theme-design-tokens.md).
+
 ## Kiosk navigation rules
 - **No drawer/back exit to system.** Hide hardware-style back where it leaves the flow.
 - Admin/settings screens reachable only via a **hidden gesture + PIN**

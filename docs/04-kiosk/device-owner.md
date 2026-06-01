@@ -6,6 +6,10 @@ confirmation dialogs and allows escape. Real lockdown requires the app to be the
 
 > **Stack requirement:** React Native **CLI**, not Expo. Device Owner needs
 > native Android APIs Expo doesn't expose.
+>
+> **Language note:** native snippets here are shown in Java; **Kotlin is equally
+> valid** (and may be preferred for new native device-support code). The JS/TS
+> wrapper stays the same either way.
 
 ## What Device Owner unlocks
 - Silent kiosk start (no dialogs)

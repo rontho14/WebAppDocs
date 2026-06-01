@@ -12,22 +12,19 @@ discoverability, not just polish.
 
 ## The three tiers (target Tier 2 minimum; Tier 1 for premium kiosks)
 
-### Tier 3 — Large Screen Ready (baseline)
-Critical flows complete; app runs full-screen, **no letterboxing / compatibility mode**.
-- [ ] **Config & continuity:** not letterboxed in portrait/landscape, multi-window, or unfolded. On rotation/resize/fold: **scroll position, playback position, and entered text are retained**.
-- [ ] Handles **combined** config changes (rotate + resize + fold) without crash or state loss.
-- [ ] **Multi-window:** fully functional at all window sizes; keeps updating UI when not top-focused (downloads, video); releases camera/mic when backgrounded, regains on refocus.
-- [ ] **Input:** external keyboard works; switches physical⇄virtual keyboard without relaunch. Mouse/trackpad can click, select, scroll. Basic stylus select/scroll.
+- **Tier 3 — Ready:** full-screen, no letterboxing; survives rotate/resize/fold
+  with scroll/playback/text retained; works in multi-window; basic keyboard/
+  mouse/stylus.
+- **Tier 2 — Optimized (project target):** responsive + adaptive layouts via
+  window size classes; touch targets ≥ 48 dp; modals/menus sized for large
+  screens (nav rail replaces bottom bar; context menu next to item); keyboard
+  nav + shortcuts + hover + zoom.
+- **Tier 1 — Differentiated (premium):** multi-instance, PiP, drag & drop,
+  foldable postures, enhanced stylus, custom cursors.
 
-### Tier 2 — Large Screen Optimized (target for this project)
-Layout optimized for every size + richer input.
-- [ ] **Responsive + adaptive layouts** via window size classes (see breakpoints in [`../02-tablet-ux/tablet-first-design.md`](../02-tablet-ux/tablet-first-design.md)).
-- [ ] **Touch targets ≥ 48 dp** on all display sizes ([`../02-tablet-ux/touch-targets.md`](../02-tablet-ux/touch-targets.md)).
-- [ ] Modals/menus sized for large screens: bottom sheets/buttons/text fields **not full width**; context menus appear **next to the selected item**; **navigation rail replaces bottom bar** on large screens.
-- [ ] Keyboard navigation on main flows (Tab + arrows); shortcuts (cut/copy/paste/undo/redo); right-click context menus; hover states; Ctrl+scroll / pinch zoom.
-
-### Tier 1 — Large Screen Differentiated (premium)
-- [ ] Multi-instance / multi-window launch, picture-in-picture, drag & drop (touch+mouse+stylus), foldable postures, enhanced stylus (pressure/tilt/palm rejection), custom cursors.
+➡️ **Full testable criteria (all LS-* / T#-# items + native-vs-RN notes):
+[`android-quality-checklist.md`](android-quality-checklist.md).**
+➡️ Input-device detail: [`input-support.md`](input-support.md).
 
 ## Canonical layouts (Android)
 Prefer one of: **List-Detail** (master-detail — primary tablet pattern),

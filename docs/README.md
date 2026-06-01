@@ -15,10 +15,11 @@
 ### 01 — Architecture (`01-architecture/`)
 | File | Read it when you need to… |
 |------|---------------------------|
-| [`directory-structure.md`](01-architecture/directory-structure.md) | Decide where a file/folder goes; scaffold a feature |
+| [`directory-structure.md`](01-architecture/directory-structure.md) | Decide where a file/folder goes; scaffold a feature; native-module layout |
 | [`architecture-patterns.md`](01-architecture/architecture-patterns.md) | Pick a pattern (container/presentational, atomic, feature-based) |
 | [`state-management.md`](01-architecture/state-management.md) | Choose local vs global state; wire Redux Toolkit / Context / Query |
 | [`service-layer.md`](01-architecture/service-layer.md) | Add an API call; structure `services/`; configure Axios + caching |
+| [`theme-design-tokens.md`](01-architecture/theme-design-tokens.md) | Use colors/typography/spacing/touch tokens; theming |
 
 ### 02 — Tablet UX (`02-tablet-ux/`)
 | File | Read it when you need to… |
@@ -31,9 +32,11 @@
 ### 03 — Optimization & Devices (`03-optimization/`)
 | File | Read it when you need to… |
 |------|---------------------------|
-| [`optimization-categories.md`](03-optimization/optimization-categories.md) | Apply the Android large-screen quality checklist |
+| [`optimization-categories.md`](03-optimization/optimization-categories.md) | Quick overview of the large-screen quality tiers |
+| [`android-quality-checklist.md`](03-optimization/android-quality-checklist.md) | Full Tier 3/2/1 criteria reference — load for a quality audit |
+| [`input-support.md`](03-optimization/input-support.md) | Keyboard/mouse/trackpad/stylus support criteria + RN notes |
 | [`multi-window-continuity.md`](03-optimization/multi-window-continuity.md) | Handle resize, split-screen, rotation, state restoration |
-| [`peripherals.md`](03-optimization/peripherals.md) | Support keyboards, scanners, printers, card readers, USB/BLE |
+| [`peripherals.md`](03-optimization/peripherals.md) | Hardware: scanners, printers, card readers, NFC, USB/BLE |
 
 ### 04 — Kiosk Lockdown (`04-kiosk/`)
 | File | Read it when you need to… |
@@ -55,7 +58,9 @@ NN/g tablet UX, etc.) behind every cited claim.
 
 ## Global conventions (apply everywhere)
 
-- **Stack:** React Native CLI (not Expo — Device Owner needs native APIs), TypeScript strict.
+- **Stack (provisional — not finalized):** React Native CLI + TypeScript for all
+  UI/UX; **Kotlin/Java native modules for device support** (Device Owner, Lock
+  Task, low-latency input, some peripherals). Not Expo — Device Owner needs native APIs.
 - **Target:** Android tablets in kiosk/single-purpose mode.
 - **Style:** Functional components + hooks only. No class components except `ErrorBoundary`.
 - **Imports:** Use the `@/` path alias (see `typescript-strict.md`).

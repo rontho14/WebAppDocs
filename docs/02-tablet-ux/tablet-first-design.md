@@ -31,17 +31,43 @@ export const responsive = {
 > [`../03-optimization/multi-window-continuity.md`](../03-optimization/multi-window-continuity.md).
 
 ## Breakpoints — Android Window Size Classes (official)
-| Width (dp) | Class | Layout |
-|-----------|-------|--------|
-| `< 600` | **Compact** (phone) | single column, stacked |
-| `600–839` | **Medium** (small tablet, unfolded) | 2 columns / master-detail collapsible |
-| `≥ 840` | **Expanded** (large tablet, desktop) | two-pane (list + detail), persistent nav rail |
+Classes are based on **available window space** (not physical size) and are
+**dynamic** — they change with rotation, multi-window, and folding. **Width is
+usually the deciding axis** (content scrolls vertically). Source:
+[`../references.md`](../references.md).
+
+**Width:**
+| Width (dp) | Class | Typical device |
+|-----------|-------|----------------|
+| `< 600` | **Compact** | phones in portrait |
+| `600–839` | **Medium** | tablets in portrait, unfolded inner displays (portrait) |
+| `840–1199` | **Expanded** | tablets in landscape, unfolded (landscape) |
+| `1200–1599` | **Large** | large tablet displays |
+| `≥ 1600` | **Extra-large** | desktop displays |
+
+**Height:**
+| Height (dp) | Class |
+|-----------|-------|
+| `< 480` | **Compact** (phones landscape) |
+| `480–899` | **Medium** |
+| `≥ 900` | **Expanded** (tablets portrait) |
+
+**Layout decisions:** Compact width → single pane, stacked. Medium → transitional /
+two-pane. Expanded+ → multi-pane (list-detail, supporting pane). **Compact height
+→ avoid two-pane even at medium width** (e.g. phone in landscape).
 
 ## Canonical layouts (pick one per screen)
-Android recommends three proven adaptive patterns — implement the matching one:
-- **List-Detail** — list + detail side-by-side on Expanded; the primary kiosk/tablet pattern (see two-pane below).
-- **Feed** — resizable grid of cards (`numColumns` scales with width).
-- **Supporting Pane** — main content + a secondary tools/info pane on wide screens.
+Android recommends three proven adaptive patterns — implement the matching one.
+Pane proportions below are the official defaults:
+
+- **List-Detail** — list + detail. **Expanded:** both panes side-by-side, selecting
+  an item updates detail. **Medium/Compact:** one pane at a time; selection pushes
+  detail, back returns to list. The primary kiosk/tablet pattern (see two-pane below).
+- **Feed** — adaptive grid of cards; column count grows with width (set a minimum
+  column width, e.g. ~180 dp; single column on Compact).
+- **Supporting Pane** — primary content + secondary pane that is only meaningful
+  *with* the primary. **Expanded ≈ 70/30**, **Medium ≈ 50/50**, **Compact:** primary
+  only (supporting content hidden or in a bottom sheet).
 
 ## Two-pane (master-detail) — the key tablet pattern
 ```tsx
@@ -68,8 +94,16 @@ On phones the detail becomes a pushed screen; on tablets it sits beside the list
 />
 ```
 
+## Debug current device while testing
+```ts
+console.log('Device:', {
+  width: deviceInfo.width, height: deviceInfo.height,
+  isTablet: deviceInfo.isTablet, columns: responsive.gridColumns,
+});
+```
+
 ## Rules
 - Use flex + percentages, never fixed pixel widths for containers.
-- Scale type/spacing through tokens ([`../05-quality`](../05-quality/typescript-strict.md) theme).
+- Scale type/spacing through tokens ([`../01-architecture/theme-design-tokens.md`](../01-architecture/theme-design-tokens.md)).
 - Cap content max-width on huge screens so lines stay readable.
-- Test phone, 7" and 10" tablets, both orientations.
+- Test phone, 7" and 10" tablets, both orientations (matrix in [`../03-optimization/android-quality-checklist.md`](../03-optimization/android-quality-checklist.md)).

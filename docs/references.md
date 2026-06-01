@@ -9,6 +9,12 @@ Primary sources behind this knowledge base. Citations in the docs point here.
 - **Large screens guide** — window size classes (Compact/Medium/Expanded) and
   canonical layouts (List-Detail, Feed, Supporting Pane).
   `developer.android.com/guide/topics/large-screens`
+- **Window size classes** — full width breakpoints (Compact <600, Medium 600–840,
+  Expanded 840–1200, Large 1200–1600, Extra-large ≥1600) + height classes
+  (<480 / 480–900 / ≥900). `developer.android.com/develop/ui/compose/layouts/adaptive/window-size-classes`
+- **Canonical layouts** — list-detail behavior per width; feed adaptive columns;
+  supporting-pane proportions (70/30 expanded, 50/50 medium).
+  `developer.android.com/develop/ui/compose/layouts/adaptive/canonical-layouts`
 - **Android Design** — adaptive layouts, navigation rail vs bottom nav, and the
   three quality pillars: accessibility, technical quality, security & privacy.
   `developer.android.com/design`
@@ -37,6 +43,13 @@ Primary sources behind this knowledge base. Citations in the docs point here.
 - Inline article material provided in the task brief: React/RN architecture
   (S. Hudge), React Native CLI kiosk mode / Device Owner + Lock Task (T. Noman),
   tablet-first TypeScript + responsive design (D. Şahin).
+
+## Provisional architecture decision
+The app stack is **not finalized**. Working assumption (per project owner):
+**React Native + TypeScript for UI/UX**, **Kotlin/Java native modules for device
+support** (kiosk Device Owner / Lock Task, low-latency input, some peripherals).
+Docs keep the native↔JS boundary explicit and avoid over-committing. Revisit if
+the architecture is decided.
 
 > Retrieval note: Android design/quality/large-screen pages were fetched
 > directly. NN/g, the PDFs, ScienceDirect, and the GitHub Pages guide return 403

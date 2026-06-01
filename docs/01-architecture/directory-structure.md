@@ -24,6 +24,19 @@ src/
 └── config/          # env access, constants
 ```
 
+## Native modules (provisional architecture)
+Architecture is **not finalized**: the working assumption is **React Native + TS
+for all UI/UX**, with **native code (Kotlin or Java) for device support** that JS
+can't reach — kiosk Device Owner / Lock Task, some peripherals, low-latency input.
+Native code lives under the Android project, not `src/`:
+```
+android/app/src/main/java/com/yourapp/   # native modules, receivers (Kotlin/Java)
+res/xml/                                  # device_admin.xml, etc.
+src/services/kiosk.ts                     # thin JS wrapper over the native module
+```
+Keep the boundary clean: native module exposes a minimal API; all logic/UI stays
+in RN/TS. See [`../04-kiosk/lock-task-mode.md`](../04-kiosk/lock-task-mode.md).
+
 ## Rules
 
 - A folder graduates to `features/<name>/` once it owns 2+ screens or its own state.
