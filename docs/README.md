@@ -52,6 +52,15 @@
 | [`testing-tdd.md`](05-quality/testing-tdd.md) | Write unit/E2E tests; follow the TDD loop; mock APIs |
 | [`error-handling-performance.md`](05-quality/error-handling-performance.md) | Add error boundaries, logging, memoization, lazy loading |
 
+### Repo Examples (`repo-examples/`)
+Real open-source RN apps to learn from — verified architecture + code snippets.
+| File | Read it when you need to… |
+|------|---------------------------|
+| [`repo-examples/README.md`](repo-examples/README.md) | Pick a reference app; see what each teaches |
+| [`f8app/`](repo-examples/f8app/README.md) | Study a content-heavy Redux app (data fan-out, persistence, route-driven scenes) |
+| [`uiexplorer/`](repo-examples/uiexplorer/README.md) | Build a registry-driven component gallery / kiosk menu (list→detail, search) |
+| [`react-native-sample-app/`](repo-examples/react-native-sample-app/README.md) | Isolate the network layer; unidirectional Flux; URL-as-navigation |
+
 ### Sources
 [`references.md`](references.md) — primary sources (Android quality guidelines,
 NN/g tablet UX, etc.) behind every cited claim.

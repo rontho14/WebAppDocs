@@ -44,6 +44,21 @@ Primary sources behind this knowledge base. Citations in the docs point here.
   (S. Hudge), React Native CLI kiosk mode / Device Owner + Lock Task (T. Noman),
   tablet-first TypeScript + responsive design (D. Şahin).
 
+## Open-source reference apps (documented in `repo-examples/`)
+- **fbsamples/f8app** — official F8 2017 app (React Native, Redux, Relay/GraphQL,
+  Parse Server). `github.com/fbsamples/f8app` · tutorials `makeitopen.com`.
+- **React Native UIExplorer → RNTester** — official component gallery.
+  Classic mirror `github.com/rnplay/uiexplorer`; current `facebook/react-native`
+  at `packages/rn-tester`.
+- **taskrabbit/ReactNativeSampleApp** — early architecture-focused sample (Flux,
+  isolated network layer, URL routing). `github.com/taskrabbit/ReactNativeSampleApp`.
+
+> Snippets in `repo-examples/` were fetched from `raw.githubusercontent.com` and
+> cited with paths/permalinks. The GitHub tree/contents API was rate-limited (403)
+> during research, so some directory listings came from GitHub web tree views;
+> each doc flags what it could not fully verify. These repos are dated — study the
+> patterns, not the verbatim APIs.
+
 ## Provisional architecture decision
 The app stack is **not finalized**. Working assumption (per project owner):
 **React Native + TypeScript for UI/UX**, **Kotlin/Java native modules for device
