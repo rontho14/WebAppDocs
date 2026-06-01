@@ -20,6 +20,11 @@ couldn't be verified is flagged in-doc.
 
 Each folder contains: `README.md` · `architecture.md` · `snippets.md`.
 
+> ⚠️ These repos are dated (2015–2017). Before copying any code, read
+> [`modern-equivalents.md`](modern-equivalents.md) — it maps each obsolete API
+> (old `Navigator`, `ListView`, Flux, `React.createClass`) to our current stack
+> (React Navigation, `FlatList`, Redux Toolkit, React Query, TypeScript).
+
 ## How these map to our project
 - **F8** → how to structure a tablet/kiosk app that surfaces lots of content from a
   store and survives flaky networks (`f8app/`). Cross-ref: [`../01-architecture/state-management.md`](../01-architecture/state-management.md), [`../01-architecture/service-layer.md`](../01-architecture/service-layer.md).
