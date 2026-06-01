@@ -57,7 +57,6 @@ Real open-source RN apps to learn from — verified architecture + code snippets
 | File | Read it when you need to… |
 |------|---------------------------|
 | [`repo-examples/README.md`](repo-examples/README.md) | Pick a reference app; see what each teaches |
-| [`modern-equivalents.md`](repo-examples/modern-equivalents.md) | Map a dated pattern (old Navigator/ListView/Flux) to our current stack — read before copying example code |
 | [`f8app/`](repo-examples/f8app/README.md) | Study a content-heavy Redux app (data fan-out, persistence, route-driven scenes) |
 | [`uiexplorer/`](repo-examples/uiexplorer/README.md) | Build a registry-driven component gallery / kiosk menu (list→detail, search) |
 | [`react-native-sample-app/`](repo-examples/react-native-sample-app/README.md) | Isolate the network layer; unidirectional Flux; URL-as-navigation |

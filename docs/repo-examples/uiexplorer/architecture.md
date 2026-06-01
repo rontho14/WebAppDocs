@@ -2,8 +2,9 @@
 
 Two generations of the same idea: a **flat example registry** drives a
 **list → detail** UI, and each example is a **self-describing module** rendered by
-shared scaffolding. Paths below are real; see `snippets.md` for verbatim code +
-raw URLs.
+shared scaffolding. Paths below are real (verified against the source); see
+`snippets.md` for the same patterns adapted to our current stack, each with a
+source link.
 
 ---
 

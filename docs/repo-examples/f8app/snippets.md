@@ -1,242 +1,173 @@
-# F8 App 2017 — Code Snippets
+# F8 App — Code Snippets (modern adaptation)
 
-Real excerpts copied from files fetched from branch `main`. Each is trimmed to the
-load-bearing lines; license headers removed for brevity. Permalinks point at the
-`main` branch on GitHub.
+The F8 2017 patterns, rewritten on our current stack — **TypeScript + React Query +
+Redux Toolkit + React Navigation + redux-persist v6**. Each snippet cites the
+original source pattern it's adapted from; the code here is the modern equivalent
+that does the same job (it intentionally does **not** match the 2017 source
+line-for-line). For the original verbatim code, follow the source link.
 
-## 1. One-line native entry point
+---
 
-**Source:** `index.ios.js` (identical `index.android.js`)
-**URL:** https://github.com/fbsamples/f8app/blob/main/index.ios.js
+## 1. Native entry point
+*Pattern from `index.ios.js` / `js/setup.js` — [source](https://github.com/fbsamples/f8app/blob/main/js/setup.js)*
 
-```js
-import { AppRegistry } from "react-native";
-import setup from "./js/setup";
+```tsx
+// index.js — one entry, all bootstrap in <App/>
+import { AppRegistry } from 'react-native';
+import App from './src/App';
+import { name as appName } from './app.json';
 
-AppRegistry.registerComponent("F82017", setup);
+AppRegistry.registerComponent(appName, () => App);
 ```
 
-The platform entry files do nothing but register `js/setup`. All real bootstrapping
-is in JS, so a kiosk build keeps one code path across platforms.
+## 2. Boot gate on rehydration (was the `LaunchScreen` until rehydrated check)
+*Pattern from `js/setup.js` — [source](https://github.com/fbsamples/f8app/blob/main/js/setup.js)*
 
-## 2. Bootstrap: gate first paint on store rehydration
-
-**Source:** `js/setup.js`
-**URL:** https://github.com/fbsamples/f8app/blob/main/js/setup.js
-
-```js
-componentDidMount() {
-  configureStore(
-    _ => this.setState({ storeRehydrated: true })
-  ).then(
-    store => this.setState({ store, storeCreated: true })
-  );
-}
-
-render() {
-  if (!this.state.storeCreated || !this.state.storeRehydrated) {
-    return <LaunchScreen />;
-  }
+```tsx
+// src/App.tsx — PersistGate replaces the manual storeRehydrated flag
+export default function App() {
+  useEffect(() => { prefetchContent(queryClient); }, []);
   return (
-    <Provider store={this.state.store}>
-      <F8App />
-    </Provider>
+    <ReduxProvider store={store}>
+      <PersistGate loading={<LaunchScreen />} persistor={persistor}>
+        <QueryClientProvider client={queryClient}>
+          <NavigationContainer><RootNavigator /></NavigationContainer>
+        </QueryClientProvider>
+      </PersistGate>
+    </ReduxProvider>
   );
 }
 ```
+Boots straight into last-known content, no empty UI — the F8 offline-launch behavior.
 
-The app shows a `LaunchScreen` until the persisted store is rebuilt and rehydrated,
-then mounts under react-redux `Provider`. A kiosk reboots straight into last-known
-content instead of an empty UI.
+## 3. Store config + persistence (was `configureStore.js` + `autoRehydrate`)
+*Pattern from `js/store/configureStore.js` — [source](https://github.com/fbsamples/f8app/blob/main/js/store/configureStore.js)*
 
-## 3. Store config: middleware chain + persistence
+```ts
+// src/store/index.ts
+import { configureStore } from '@reduxjs/toolkit';
+import { persistReducer, persistStore } from 'redux-persist';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-**Source:** `js/store/configureStore.js`
-**URL:** https://github.com/fbsamples/f8app/blob/main/js/store/configureStore.js
-
-```js
-const createF8Store = applyMiddleware(thunk, promise, array, analytics, logger)(
-  createStore
-);
-
-async function configureStore(onComplete) {
-  const didReset = await ensureCompatibility();
-  const store = autoRehydrate()(createF8Store)(reducers);
-  persistStore(store, { storage: AsyncStorage }, _ => onComplete(didReset));
-  return store;
-}
+const persisted = persistReducer({ key: 'ui', storage: AsyncStorage }, uiReducer);
+export const store = configureStore({ reducer: { ui: persisted } }); // thunk + devtools built in
+export const persistor = persistStore(store);
 ```
 
-Thunk plus three app-specific middlewares (`promise`, `array`, `analytics`), with
-`redux-persist` writing through to `AsyncStorage`. The offline-first persistence
-model a kiosk wants.
+## 4. Offline-first content cache (was `redux-persist` over content slices)
+*Pattern from `js/store/configureStore.js` persistence — [source](https://github.com/fbsamples/f8app/blob/main/js/store/configureStore.js)*
 
-## 4. Root component fans out content loaders
-
-**Source:** `js/F8App.js`
-**URL:** https://github.com/fbsamples/f8app/blob/main/js/F8App.js
-
-```js
-componentDidMount() {
-  AppState.addEventListener("change", this.handleAppStateChange);
-  this.props.dispatch(loadSessions());
-  this.props.dispatch(loadConfig());
-  this.props.dispatch(loadNotifications());
-  this.props.dispatch(loadVideos());
-  this.props.dispatch(loadMaps());
-  this.props.dispatch(loadFAQs());
-  this.props.dispatch(loadPages());
-  this.props.dispatch(loadPolicies());
-  // ...logged-in extras...
-}
-
-handleAppStateChange = appState => {
-  if (appState === "active") {
-    this.props.dispatch(loadSessions());
-    this.props.dispatch(loadVideos());
-    this.props.dispatch(loadNotifications());
-  }
-};
-```
-
-Pre-warm all content at boot, then refresh a subset whenever the app returns to the
-foreground — exactly the loop a long-running kiosk screen wants.
-
-## 5. Generic Parse loader thunk (data fetched off the animation frame)
-
-**Source:** `js/actions/parse.js`
-**URL:** https://github.com/fbsamples/f8app/blob/main/js/actions/parse.js
-
-```js
-function loadParseQuery(type, query) {
-  return dispatch => {
-    return query.find({
-      success: list => {
-        InteractionManager.runAfterInteractions(() => {
-          dispatch(({ type, list }: any));
-        });
-      },
-      error: logError
-    });
-  };
-}
-
-function loadSessions() {
-  return loadParseQuery(
-    "LOADED_SESSIONS",
-    new Parse.Query("Agenda").include("speakers").ascending("startTime")
-  );
-}
-```
-
-One reusable thunk for every read-only content type; dispatch is deferred behind
-`InteractionManager` so loading never janks a transition.
-
-## 6. Reducer factory normalizes backend objects
-
-**Source:** `js/reducers/createParseReducer.js`
-**URL:** https://github.com/fbsamples/f8app/blob/main/js/reducers/createParseReducer.js
-
-```js
-function createParseReducer(type, convert) {
-  return function(state, action) {
-    if (action.type === type) {
-      return action.list.map(convert);
-    }
-    return state || [];
-  };
-}
-```
-
-The single place Parse object shapes become plain UI state. Swap the data source and
-only `convert` changes — components are untouched.
-
-## 7. Root reducer: many small slices
-
-**Source:** `js/reducers/index.js`
-**URL:** https://github.com/fbsamples/f8app/blob/main/js/reducers/index.js
-
-```js
-module.exports = combineReducers({
-  config: require("./config"),
-  sessions: require("./sessions"),
-  maps: require("./maps"),
-  faqs: require("./faqs"),
-  pages: require("./pages"),
-  videos: require("./videos"),
-  navigation: require("./navigation"),
-  // ...~20 slices total...
+```ts
+// src/app/queryClient.ts — persist the React Query cache instead of content in Redux
+export const queryClient = new QueryClient({
+  defaultOptions: { queries: { gcTime: 1000 * 60 * 60 * 24, retry: 2, staleTime: 60_000 } },
+});
+persistQueryClient({
+  queryClient,
+  persister: createAsyncStoragePersister({ storage: AsyncStorage }),
+  maxAge: 1000 * 60 * 60 * 24, // yesterday's content survives a cold boot
 });
 ```
 
-Each content area is an independent, individually testable slice — a clean template
-for per-screen kiosk content.
+## 5. Boot-time content fan-out (was `F8App.componentDidMount` dispatch batch)
+*Pattern from `js/F8App.js` — [source](https://github.com/fbsamples/f8app/blob/main/js/F8App.js)*
 
-## 8. Navigation kept in Redux
-
-**Source:** `js/reducers/navigation.js` + `js/actions/navigation.js`
-**URL:** https://github.com/fbsamples/f8app/blob/main/js/reducers/navigation.js
-
-```js
-// actions/navigation.js
-switchTab: (tab) => ({ type: "SWITCH_TAB", tab }),
-switchDay: (day) => ({ type: "SWITCH_DAY", day }),
-
-// reducers/navigation.js
-const initialState = { tab: "schedule", day: 1 };
-function navigation(state = initialState, action) {
-  if (action.type === "SWITCH_TAB") return { ...state, tab: action.tab };
-  if (action.type === "SWITCH_DAY") return { ...state, day: action.day };
-  if (action.type === "LOGGED_OUT") return initialState;
-  return state;
+```ts
+// src/app/prefetchContent.ts
+export async function prefetchContent(qc: QueryClient) {
+  await Promise.all([
+    qc.prefetchQuery(sessionsQuery),
+    qc.prefetchQuery(mapsQuery),
+    qc.prefetchQuery(faqsQuery),
+    qc.prefetchQuery(videosQuery),
+  ]);
 }
+// refresh a subset when the kiosk returns to foreground (the old AppState handler)
+useEffect(() => {
+  const sub = AppState.addEventListener('change', (s) => {
+    if (s === 'active') qc.invalidateQueries({ queryKey: ['sessions'] });
+  });
+  return () => sub.remove();
+}, [qc]);
 ```
 
-The selected tab/day is store state, so any component can read or change it — handy
-for a kiosk that drives navigation from external events (idle reset, deep links).
+## 6. Generic content loader (was the `loadParseQuery` thunk)
+*Pattern from `js/actions/parse.js` — [source](https://github.com/fbsamples/f8app/blob/main/js/actions/parse.js)*
 
-## 9. Stack navigator: route-shape → scene
-
-**Source:** `js/F8Navigator.js`
-**URL:** https://github.com/fbsamples/f8app/blob/main/js/F8Navigator.js
-
-```js
-renderScene: function(route, navigator) {
-  if (route.allSessions) {
-    return <SessionsCarousel {...route} navigator={navigator} />;
-  } else if (route.session) {
-    return <SessionsCarousel session={route.session} navigator={navigator} />;
-  } else if (route.video) {
-    return <F8VideoView video={route.video} navigator={navigator} />;
-  } else if (route.maps) {
-    return <F8MapView directions={false} navigator={navigator} />;
-  } else {
-    return <F8TabsView navigator={navigator} />;  // default: the tab shell
-  }
-}
+```ts
+// src/services/sessionService.ts — async service replaces Parse.Query callbacks
+export const sessionService = {
+  list: () => apiClient.get('/sessions').then((r) => r.data.map(toSession)),
+};
+// src/features/schedule/useSessions.ts
+export const sessionsQuery = { queryKey: ['sessions'] as const, queryFn: sessionService.list };
+export const useSessions = () => useQuery(sessionsQuery);
 ```
 
-A single declarative route → scene map; the route object's keys act as its type. A
-multi-screen kiosk gets one place to define every detail/modal screen.
+## 7. Normalize remote data at the boundary (was `createParseReducer(convert)`)
+*Pattern from `js/reducers/createParseReducer.js` — [source](https://github.com/fbsamples/f8app/blob/main/js/reducers/createParseReducer.js)*
 
-## 10. Tab bar driven by store state
+```ts
+// src/services/sessionService.ts — the convert() job, now in the service
+export type Session = { id: string; title: string; startTime: string; speakers: string[] };
+const toSession = (raw: any): Session => ({
+  id: raw.objectId ?? raw.id,
+  title: raw.title,
+  startTime: raw.startTime,
+  speakers: (raw.speakers ?? []).map((s: any) => s.name),
+});
+```
+Components see only `Session`; swap the backend and only `toSession` changes.
 
-**Source:** `js/tabs/F8TabsView.js`
-**URL:** https://github.com/fbsamples/f8app/blob/main/js/tabs/F8TabsView.js
+## 8. Nav/UI state in a slice (was the hand-written `navigation` reducer)
+*Pattern from `js/reducers/navigation.js` + `js/actions/navigation.js` — [source](https://github.com/fbsamples/f8app/blob/main/js/reducers/navigation.js)*
 
-```js
-<TabNavigator tabBarStyle={styles.tabBar}>
-  <TabNavigator.Item
-    title="Schedule"
-    selected={this.props.tab === "schedule"}
-    onPress={this.onTabSelect.bind(this, "schedule")}
-    renderIcon={_ => this.renderTabIcon(scheduleIcon)}
-  >
-    <GeneralScheduleView now={this.state.now} navigator={this.props.navigator} />
-  </TabNavigator.Item>
-  {/* ...My F8, Demos, Videos, Info... */}
-</TabNavigator>
+```ts
+// src/store/uiSlice.ts
+const uiSlice = createSlice({
+  name: 'ui',
+  initialState: { tab: 'schedule', day: 1 },
+  reducers: {
+    switchTab: (s, a: PayloadAction<string>) => { s.tab = a.payload; },
+    switchDay: (s, a: PayloadAction<number>) => { s.day = a.payload; },
+    resetOnLogout: () => ({ tab: 'schedule', day: 1 }),
+  },
+});
+export const { switchTab, switchDay, resetOnLogout } = uiSlice.actions;
+export default uiSlice.reducer;
 ```
 
-The persistent tab shell: `selected` reads the Redux `tab`, `onPress` dispatches
-`switchTab`. The home-level navigation of a content kiosk.
+## 9. Route-shape scenes → typed stack (was `F8Navigator.renderScene`)
+*Pattern from `js/F8Navigator.js` — [source](https://github.com/fbsamples/f8app/blob/main/js/F8Navigator.js)*
+
+```tsx
+export type RootStackParamList = {
+  Tabs: undefined; Session: { sessionId: string }; Video: { videoId: string }; Map: undefined;
+};
+const Stack = createNativeStackNavigator<RootStackParamList>();
+export const RootNavigator = () => (
+  <Stack.Navigator>
+    <Stack.Screen name="Tabs" component={TabsScreen} />
+    <Stack.Screen name="Session" component={SessionScreen} />
+    <Stack.Screen name="Video" component={VideoScreen} />
+    <Stack.Screen name="Map" component={MapScreen} />
+  </Stack.Navigator>
+);
+// navigation.navigate('Session', { sessionId })  — params are type-checked
+```
+
+## 10. Tab shell driven by state (was `F8TabsView` + `react-native-tab-navigator`)
+*Pattern from `js/tabs/F8TabsView.js` — [source](https://github.com/fbsamples/f8app/blob/main/js/tabs/F8TabsView.js)*
+
+```tsx
+const Tab = createBottomTabNavigator();   // or a left nav rail on tablets
+export const TabsScreen = () => (
+  <Tab.Navigator>
+    <Tab.Screen name="Schedule" component={ScheduleScreen} />
+    <Tab.Screen name="MyF8" component={MyF8Screen} />
+    <Tab.Screen name="Videos" component={VideosScreen} />
+    <Tab.Screen name="Info" component={InfoScreen} />
+  </Tab.Navigator>
+);
+```
+On tablets prefer a persistent nav rail (see `../../02-tablet-ux/navigation-menus.md`).

@@ -16,9 +16,10 @@ feature panels.
 
 > The GitHub REST API (`api.github.com/.../contents` and `git/trees`) returned
 > HTTP 403 (unauthenticated rate limit) during research, so directory listings
-> were read from the GitHub web tree views and **all code excerpts were pulled
-> from `raw.githubusercontent.com`** (verbatim source). See `snippets.md` for the
-> exact URLs.
+> were read from the GitHub web tree views and the original source was pulled from
+> `raw.githubusercontent.com` to verify structure. `architecture.md` documents the
+> real repos; `snippets.md` adapts their patterns to our current stack (with a
+> source link per snippet).
 
 ## History: UIExplorer to RNTester
 

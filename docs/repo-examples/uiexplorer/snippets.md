@@ -1,283 +1,168 @@
-# UIExplorer / RNTester — Verified Code Snippets
+# UIExplorer / RNTester — Code Snippets (modern adaptation)
 
-Every excerpt below was fetched from `raw.githubusercontent.com` (verbatim source).
-Each snippet lists its exact source path and raw URL. Snippets are trimmed for
-length; ellipses (`...`) mark omissions.
+The example-registry → list/detail pattern, rewritten on our stack — **TypeScript +
+React Navigation + `SectionList` + hooks**. Each snippet cites the source pattern;
+the code is the modern equivalent (not the verbatim 2016 `ListView`/`createClass`
+source). Follow the source links for the originals.
 
----
-
-## Classic UIExplorer — `rnplay/uiexplorer`, branch `master`
-
-### 1. The example registry (two arrays of modules)
-
-**Path:** `UIExplorerList.js`
-**Raw:** https://raw.githubusercontent.com/rnplay/uiexplorer/master/UIExplorerList.js
-
-```js
-var COMPONENTS = [
-  require('./ActivityIndicatorIOSExample'),
-  require('./ImageExample'),
-  require('./ListViewExample'),
-  require('./Navigator/NavigatorExample'),
-  require('./ScrollViewExample'),
-  require('./TextExample.ios'),
-  require('./ViewExample'),
-  require('./WebViewExample'),
-  // ...
-];
-
-var APIS = [
-  require('./ActionSheetIOSExample'),
-  require('./AlertIOSExample'),
-  require('./GeolocationExample'),
-  require('./PanResponderExample'),
-  require('./TimerExample'),
-  // ...
-];
-```
-
-This *is* the gallery's catalog. Demonstrates the core registry pattern: the menu
-is a flat data array, decoupled from file layout (note the nested
-`./Navigator/NavigatorExample`). **Kiosk:** add one line to expose a new feature
-panel; list/search/navigation pick it up with no other wiring.
-
-### 2. Turning a module into a renderable page
-
-**Path:** `UIExplorerList.js`
-**Raw:** https://raw.githubusercontent.com/rnplay/uiexplorer/master/UIExplorerList.js
-
-```js
-function makeRenderable(example: any): ReactClass<any, any, any> {
-  return example.examples ?
-    createExamplePage(null, example) :
-    example;
-}
-```
-
-A module is "self-describing": if it has an `examples` array it is wrapped by the
-generic `createExamplePage`; otherwise it renders itself. **Kiosk:** the host
-renders panels generically from data instead of importing each screen explicitly.
-
-### 3. List rows + list → detail navigation
-
-**Path:** `UIExplorerList.js`
-**Raw:** https://raw.githubusercontent.com/rnplay/uiexplorer/master/UIExplorerList.js
-
-```js
-_renderRow(example: ExampleModule, i: number) {
-  return (
-    <View key={i}>
-      <TouchableHighlight onPress={() => this._onPressRow(example)}>
-        <View style={styles.row}>
-          <Text style={styles.rowTitleText}>{example.title}</Text>
-          <Text style={styles.rowDetailText}>{example.description}</Text>
-        </View>
-      </TouchableHighlight>
-      <View style={styles.separator} />
-    </View>
-  );
-}
-
-_onPressRow(example: ExampleModule) {
-  if (example.external) {
-    this.props.onExternalExampleRequested(example);
-    return;
-  }
-  var Component = makeRenderable(example);
-  this.props.navigator.push({ title: Component.title, component: Component });
-}
-```
-
-Rows are rendered straight from registry metadata (`title`/`description`); a tap
-pushes the rendered module onto the navigator. **Kiosk:** a single generic index
-screen drives navigation to every feature.
-
-### 4. Live search/filter over the registry
-
-**Path:** `UIExplorerList.js`
-**Raw:** https://raw.githubusercontent.com/rnplay/uiexplorer/master/UIExplorerList.js
-
-```js
-_search(text: mixed) {
-  var regex = new RegExp(text, 'i');
-  var filter = (component) => regex.test(component.title);
-
-  this.setState({
-    dataSource: ds.cloneWithRowsAndSections({
-      components: COMPONENTS.filter(filter),
-      apis: APIS.filter(filter),
-    }),
-    searchText: text,
-  });
-  Settings.set({searchText: text});
-}
-```
-
-Filtering is just a regex over registry `title`s — no per-screen search code.
-**Kiosk:** free "jump to function" search over a large menu.
-
-### 5. The generic example block (shared scaffolding)
-
-**Path:** `UIExplorerBlock.js`
-**Raw:** https://raw.githubusercontent.com/rnplay/uiexplorer/master/UIExplorerBlock.js
-
-```js
-propTypes: {
-  title: React.PropTypes.string,
-  description: React.PropTypes.string,
-},
-
-render: function() {
-  var description;
-  if (this.props.description) {
-    description = <Text style={styles.descriptionText}>{this.props.description}</Text>;
-  }
-  return (
-    <View style={styles.container}>
-      <View style={styles.titleContainer}>
-        <Text style={styles.titleText}>{this.props.title}</Text>
-        {description}
-      </View>
-      <View style={styles.children}>{this.props.children}</View>
-    </View>
-  );
-}
-```
-
-One reusable "card" that renders title + optional description + children. **Kiosk:**
-consistent panel chrome across every feature, defined once.
-
-### 6. A self-describing example module
-
-**Path:** `ViewExample.js`
-**Raw:** https://raw.githubusercontent.com/rnplay/uiexplorer/master/ViewExample.js
-(metadata reproduced; render bodies summarized for length)
-
-```js
-exports.title = '<View>';
-exports.description = 'Basic building block of all UI.';
-exports.displayName = 'ViewExample';
-exports.examples = [
-  { title: 'Background Color', render() { /* blue bg + Text */ } },
-  { title: 'Border',           render() { /* 5px blue border */ } },
-  { title: 'Border Radius',    render() { /* rounded box */ } },
-  // ... Padding/Margin, Circle, Overflow, Opacity
-];
-```
-
-The contract every registry entry follows: `title` + `description` + `examples[]`
-of `{title, render}`. **Kiosk:** describe a feature screen as data; the framework
-renders it.
-
-### 7. Root registration delegating to the list
-
-**Path:** `index.ios.js` (module `UIExplorerApp`)
-**Raw:** https://raw.githubusercontent.com/rnplay/uiexplorer/master/index.ios.js
-
-```js
-var UIExplorerApp = React.createClass({
-  render: function() {
-    return <UIExplorerList/>;
-  }
-});
-
-AppRegistry.registerComponent('UIExplorerApp', () => UIExplorerApp);
-```
-
-The app shell is trivial — it just hands off to the registry-driven list.
+Result: add **one typed entry** and the menu, search, grouping, and detail routing
+all pick it up — the UIExplorer/RNTester win, type-safe.
 
 ---
 
-## Modern RNTester — `facebook/react-native`, branch `main`
+## 1. Typed registry (was `var COMPONENTS = [require('./X'), ...]`)
+*Pattern from `UIExplorerList.js` / `RNTesterList.ios.js` — [classic](https://github.com/rnplay/uiexplorer/blob/master/UIExplorerList.js) · [modern](https://github.com/facebook/react-native/blob/main/packages/rn-tester/js/utils/RNTesterList.ios.js)*
 
-### 8. The typed registry entry
+```ts
+// src/features/registry.ts
+import type { ComponentType } from 'react';
+export type FeatureEntry = {
+  key: string;                                   // stable id (RNTester's `key`)
+  title: string;
+  description?: string;
+  category: 'Flow' | 'Browse' | 'Help' | 'Admin'; // RNTester's `category`
+  screen: ComponentType;
+  testID?: string;                               // gallery doubles as an E2E surface
+};
 
-**Path:** `packages/rn-tester/js/utils/RNTesterList.ios.js`
-**Raw:** https://raw.githubusercontent.com/facebook/react-native/main/packages/rn-tester/js/utils/RNTesterList.ios.js
+import { CheckinScreen } from './checkin/CheckinScreen';
+import { CatalogScreen } from './catalog/CatalogScreen';
 
-```js
-// Components entries (type RNTesterModuleInfo: {key, module, category?})
-{
-  key: 'ImageExample',
-  module: require('../examples/Image/ImageExample'),
-  category: 'Basic',
-},
-// APIs entries
-{
-  key: 'AlertExample',
-  module: require('../examples/Alert/AlertExample').default,
-  category: 'UI',
-},
-
-const RNTesterList = { APIs, Components, Modules };
-module.exports = RNTesterList;
+export const FEATURES: FeatureEntry[] = [
+  { key: 'checkin', title: 'Check in', category: 'Flow', screen: CheckinScreen, testID: 'feature-checkin' },
+  { key: 'catalog', title: 'Catalog', category: 'Browse', screen: CatalogScreen, testID: 'feature-catalog' },
+];
 ```
 
-Same two-bucket registry as classic, now with a stable `key` and a `category` for
-grouping, plus a `Modules` key→module map for lookup/deep-linking. **Kiosk:**
-`category` groups menu items into sections automatically.
+## 2. Key → entry map for lookup/deep-link (was concat + `.find(c => c.title === route)`)
+*Pattern from `UIExplorerList.js` render lookup / RNTester `Modules` — [source](https://github.com/facebook/react-native/blob/main/packages/rn-tester/js/utils/RNTesterList.ios.js)*
 
-### 9. The formal example-module contract (types)
-
-**Path:** `packages/rn-tester/js/types/RNTesterTypes.js`
-**Raw:** https://raw.githubusercontent.com/facebook/react-native/main/packages/rn-tester/js/types/RNTesterTypes.js
-
-```js
-export type RNTesterModuleExample = Readonly<{
-  name?: string,
-  title: string,
-  platform?: 'ios' | 'android',
-  description?: string,
-  hidden?: boolean,
-  scrollable?: boolean,
-  render: component(),
-}>;
-
-export type RNTesterModule = Readonly<{
-  title: string,
-  description: string,
-  displayName?: ?string,
-  documentationURL?: ?string,
-  category?: ?string,
-  examples: Array<RNTesterModuleExample>,
-  showIndividualExamples?: boolean,
-}>;
+```ts
+export const FEATURES_BY_KEY: Record<string, FeatureEntry> =
+  Object.fromEntries(FEATURES.map((f) => [f.key, f]));
 ```
 
-The informal classic contract, now a checked Flow type. **Kiosk:** a typed panel
-contract makes a registry-driven gallery safe to extend by many contributors.
+## 3. Self-describing feature module (the `{title, description, examples[]}` contract)
+*Pattern from `ViewExample.js` + `RNTesterTypes.js` — [classic](https://github.com/rnplay/uiexplorer/blob/master/ViewExample.js) · [types](https://github.com/facebook/react-native/blob/main/packages/rn-tester/js/types/RNTesterTypes.js)*
 
-### 10. A modern example module conforming to the contract
+```ts
+// src/features/types.ts — the informal classic contract, now a TS type
+export type FeatureExample = { title: string; name?: string; render: () => React.ReactElement };
+export type FeatureModule = {
+  title: string;
+  description?: string;
+  category?: string;
+  examples: FeatureExample[];
+};
+```
 
-**Path:** `packages/rn-tester/js/examples/View/ViewExample.js`
-**Raw:** https://raw.githubusercontent.com/facebook/react-native/main/packages/rn-tester/js/examples/View/ViewExample.js
+## 4. A module conforming to the contract (was `exports.title / exports.examples`)
+*Pattern from `ViewExample.js` — [source](https://github.com/facebook/react-native/blob/main/packages/rn-tester/js/examples/View/ViewExample.js)*
 
-```js
-export default {
-  title: 'View',
-  documentationURL: 'https://reactnative.dev/docs/view',
-  category: 'Basic',
-  description: 'Basic building block of all UI, ...',
-  displayName: 'ViewExample',
+```tsx
+// src/features/catalog/CatalogExamples.tsx
+export const catalogModule: FeatureModule = {
+  title: 'Catalog',
+  description: 'Browse available items.',
+  category: 'Browse',
   examples: [
-    {
-      title: 'Background Color',
-      name: 'background-color',
-      render(): React.Node {
-        return (
-          <View testID="view-test-background-color"
-                style={{backgroundColor: '#527FE4', padding: 5}}>
-            <RNTesterText style={{fontSize: 11}}>Blue background</RNTesterText>
-          </View>
-        );
-      },
-    },
-    // { title: 'Border', name: 'border', render() {...} }, ...
+    { title: 'Grid', name: 'catalog-grid', render: () => <CatalogGrid /> },
+    { title: 'List', name: 'catalog-list', render: () => <CatalogList /> },
   ],
-} as RNTesterModule;
+};
 ```
 
-The evolved `ViewExample`: same `title`/`description`/`examples[]` shape, now with
-`documentationURL`, per-example `name`, and `testID`s for automated testing.
-**Kiosk:** self-contained feature panels that are also test-addressable for
-unattended regression checks.
+## 5. Generic detail renderer (was `createExamplePage` + `UIExplorerBlock`)
+*Pattern from `createExamplePage.js` + `UIExplorerBlock.js` — [page](https://github.com/rnplay/uiexplorer/blob/master/createExamplePage.js) · [block](https://github.com/rnplay/uiexplorer/blob/master/UIExplorerBlock.js)*
+
+```tsx
+// src/features/ExamplePage.tsx — host renders from data, knows no specific screen
+export function ExamplePage({ module }: { module: FeatureModule }) {
+  return (
+    <ScrollView>
+      {module.examples.map((ex) => (
+        <View key={ex.name ?? ex.title} testID={ex.name} style={styles.block}>
+          <Text style={styles.blockTitle}>{ex.title}</Text>
+          {ex.render()}
+        </View>
+      ))}
+    </ScrollView>
+  );
+}
+```
+
+## 6. Grouped + searchable index (was `ListView` + `_search` regex)
+*Pattern from `UIExplorerList.js` `_search` / `_renderRow` — [source](https://github.com/rnplay/uiexplorer/blob/master/UIExplorerList.js)*
+
+```tsx
+// src/features/FeatureListScreen.tsx
+export function FeatureListScreen() {
+  const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [query, setQuery] = useState('');
+
+  const sections = useMemo(() => {
+    const re = new RegExp(query, 'i');                          // same regex-over-title idea
+    const hits = FEATURES.filter((f) => re.test(f.title));
+    const byCat = groupBy(hits, (f) => f.category);            // category sections
+    return Object.entries(byCat).map(([title, data]) => ({ title, data }));
+  }, [query]);
+
+  return (
+    <>
+      <TextInput value={query} onChangeText={setQuery} placeholder="Search"
+                 accessibilityLabel="Search features" style={styles.search} />
+      <SectionList
+        sections={sections}
+        keyExtractor={(item) => item.key}
+        renderSectionHeader={({ section }) => <Text style={styles.header}>{section.title}</Text>}
+        renderItem={({ item }) => (
+          <Pressable testID={item.testID} onPress={() => nav.navigate('Feature', { key: item.key })}
+                     style={{ minHeight: 56, justifyContent: 'center' }}>
+            <Text>{item.title}</Text>
+            {item.description ? <Text style={styles.sub}>{item.description}</Text> : null}
+          </Pressable>
+        )}
+      />
+    </>
+  );
+}
+```
+
+## 7. List → detail routing (was `navigator.push({ component })`)
+*Pattern from `UIExplorerList._onPressRow` + `index.ios.js` — [source](https://github.com/rnplay/uiexplorer/blob/master/UIExplorerList.js)*
+
+```tsx
+export type RootStackParamList = { FeatureList: undefined; Feature: { key: string } };
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+function FeatureScreen({ route }: NativeStackScreenProps<RootStackParamList, 'Feature'>) {
+  const entry = FEATURES_BY_KEY[route.params.key];
+  if (!entry) return <Text>Unknown feature</Text>;
+  const Screen = entry.screen;                  // generic render
+  return <Screen />;
+}
+
+export const GalleryNavigator = () => (
+  <Stack.Navigator>
+    <Stack.Screen name="FeatureList" component={FeatureListScreen} options={{ title: 'Menu' }} />
+    <Stack.Screen name="Feature" component={FeatureScreen}
+      options={({ route }) => ({ title: FEATURES_BY_KEY[route.params.key]?.title })} />
+  </Stack.Navigator>
+);
+```
+
+## 8. Deep-link straight to a feature (was title lookup in `render()`)
+*Pattern from `UIExplorerList.render` deep-link-by-title — [source](https://github.com/rnplay/uiexplorer/blob/master/UIExplorerList.js)*
+
+```ts
+// React Navigation linking config
+const linking = {
+  prefixes: ['kiosk://'],
+  config: { screens: { FeatureList: 'menu', Feature: 'feature/:key' } },
+};
+// kiosk://feature/catalog opens that feature directly — handy for idle-reset/restart
+```
+
+**Kept:** one registry drives list + search + grouping + detail; self-describing
+modules; per-entry test IDs. **Dropped:** `ListView`, `React.createClass`,
+`require()` arrays, `NavigatorIOS`.

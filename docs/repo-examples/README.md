@@ -1,15 +1,15 @@
 # Repo Examples — real open-source apps to learn from
 
-Architecture and **verified** code snippets extracted from real open-source React
-Native projects. Each subfolder documents one repo; code excerpts were fetched
-from the live repositories with source paths + permalinks, and anything that
-couldn't be verified is flagged in-doc.
+Architecture and code from real open-source React Native projects. Each subfolder
+documents one repo: `architecture.md` describes the **real** repo (structure +
+source paths/permalinks, with anything unverified flagged); `snippets.md` gives
+the same patterns **rewritten on our current stack** (TypeScript + React
+Navigation + Redux Toolkit + React Query) so the code is copy-ready, not dated.
 
-> **For the AI agent:** open a repo's `architecture.md` to see how it's structured,
-> `snippets.md` for copy-able verified code, and `README.md` for the stack +
-> tablet/kiosk takeaways. These are **study references**, not our codebase —
-> several are dated (see each doc's "dated-tech caveat"); adopt the *patterns*,
-> not the obsolete APIs.
+> **For the AI agent:** open a repo's `architecture.md` to understand how it's
+> structured, `snippets.md` for modern, copy-able code adapting its patterns, and
+> `README.md` for the stack + tablet/kiosk takeaways. These are **study
+> references**, not our codebase.
 
 ## Index
 | Repo | Folder | Study it for |
@@ -20,10 +20,9 @@ couldn't be verified is flagged in-doc.
 
 Each folder contains: `README.md` · `architecture.md` · `snippets.md`.
 
-> ⚠️ These repos are dated (2015–2017). Before copying any code, read
-> [`modern-equivalents.md`](modern-equivalents.md) — it maps each obsolete API
-> (old `Navigator`, `ListView`, Flux, `React.createClass`) to our current stack
-> (React Navigation, `FlatList`, Redux Toolkit, React Query, TypeScript).
+> ⚠️ The original repos are dated (2015–2017). `architecture.md` documents them
+> as-is (old `Navigator`, `ListView`, Flux, `React.createClass`); the code in
+> `snippets.md` is already modernized to our stack, so copy from there.
 
 ## How these map to our project
 - **F8** → how to structure a tablet/kiosk app that surfaces lots of content from a
